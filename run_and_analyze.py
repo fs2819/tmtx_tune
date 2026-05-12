@@ -113,7 +113,7 @@ def save_tune_state(state):
         json.dump(state, f, indent=2)
 
 def commit_progress(iteration):
-    """Commit state and any notebook changes so progress persists across runs."""
+    """Stage and commit state/notebook changes. The CCR runtime pushes via outcomes."""
     try:
         subprocess.run(["git", "config", "user.email", "tuner@tmtx-tune"],
                        cwd=str(WORK_DIR), capture_output=True)
@@ -126,11 +126,10 @@ def commit_progress(iteration):
              f"tune: iteration {iteration} [{datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC]"],
             cwd=str(WORK_DIR), capture_output=True, check=True
         )
-        subprocess.run(["git", "push"], cwd=str(WORK_DIR), capture_output=True, check=True)
-        print(f"Progress committed and pushed (iteration {iteration})")
+        print(f"Progress committed (iteration {iteration}) — CCR will push on session end")
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.decode() if e.stderr else str(e)
-        print(f"Warning: git commit/push failed — {stderr}")
+        print(f"Warning: git commit failed — {stderr}")
 
 
 # ── Parameter updates (ITER notebook–specific) ────────────────────────────────
